@@ -1,0 +1,11 @@
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\bin\Debug\net8.0\EnglishTeacher.Domain.deps.json
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\bin\Debug\net8.0\EnglishTeacher.Domain.dll
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\bin\Debug\net8.0\EnglishTeacher.Domain.pdb
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\EnglishTeacher.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\EnglishTeacher.Domain.AssemblyInfoInputs.cache
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\EnglishTeacher.Domain.AssemblyInfo.cs
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\EnglishTeacher.Domain.csproj.CoreCompileInputs.cache
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\EnglishTeacher.Domain.dll
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\refint\EnglishTeacher.Domain.dll
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\EnglishTeacher.Domain.pdb
+C:\Users\User\EnglishTeacher\EnglishTeacher.Domain\obj\Debug\net8.0\ref\EnglishTeacher.Domain.dll
