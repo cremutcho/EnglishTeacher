@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using EnglishTeacher.API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -142,7 +143,10 @@ app.MapGet("/", () => "EnglishTeacher API rodando 🚀");
 
 app.UseHttpsRedirection();
 
-// 🔐 ORDEM CORRETA
+// ✅ Middleware global de exceção (DEVE vir antes de tudo)
+app.UseMiddleware<ExceptionMiddleware>();
+
+// 🔐 Autenticação e Autorização
 app.UseAuthentication();
 app.UseAuthorization();
 

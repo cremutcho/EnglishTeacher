@@ -15,12 +15,13 @@ public class StudentsController : ControllerBase
         _service = service;
     }
 
-    // GET: api/students
+    // GET: api/students?includeInactive=false
     [HttpGet]
     public async Task<ActionResult<IEnumerable<StudentResponseDto>>> GetAll(
-        CancellationToken cancellationToken)
+        [FromQuery] bool includeInactive = false,
+        CancellationToken cancellationToken = default)
     {
-        var students = await _service.GetAllAsync(cancellationToken);
+        var students = await _service.GetAllAsync(includeInactive, cancellationToken);
         return Ok(students);
     }
 
@@ -68,20 +69,35 @@ public class StudentsController : ControllerBase
         var updated = await _service.UpdateAsync(id, dto, cancellationToken);
 
         if (!updated)
-            return NotFound(new { message = "Aluno não encontrado." });
+            return NotFound(new { message = "Aluno não encontrado ou está inativo." });
 
         return NoContent();
     }
 
     // DELETE: api/students/{id}
+    // Soft Delete (Deactivate)
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(
+    public async Task<IActionResult> Deactivate(
         Guid id,
         CancellationToken cancellationToken)
     {
-        var deleted = await _service.DeleteAsync(id, cancellationToken);
+        var deactivated = await _service.DeactivateAsync(id, cancellationToken);
 
-        if (!deleted)
+        if (!deactivated)
+            return NotFound(new { message = "Aluno não encontrado." });
+
+        return NoContent();
+    }
+
+    // PATCH: api/students/{id}/activate
+    [HttpPatch("{id:guid}/activate")]
+    public async Task<IActionResult> Activate(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var activated = await _service.ActivateAsync(id, cancellationToken);
+
+        if (!activated)
             return NotFound(new { message = "Aluno não encontrado." });
 
         return NoContent();

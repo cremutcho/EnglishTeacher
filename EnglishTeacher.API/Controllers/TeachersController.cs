@@ -51,9 +51,8 @@ public class TeachersController : ControllerBase
         if (teacher == null)
             return NotFound();
 
-        teacher.Name = updatedTeacher.Name;
-        teacher.Email = updatedTeacher.Email;
-        teacher.Subject = updatedTeacher.Subject;
+        // ✅ Usando método Update da entidade
+        teacher.Update(updatedTeacher.Name, updatedTeacher.Email, updatedTeacher.Subject);
 
         await _context.SaveChangesAsync();
         return NoContent();
@@ -67,7 +66,8 @@ public class TeachersController : ControllerBase
         if (teacher == null)
             return NotFound();
 
-        _context.Teachers.Remove(teacher);
+        teacher.Deactivate(); // Soft delete
+
         await _context.SaveChangesAsync();
         return NoContent();
     }

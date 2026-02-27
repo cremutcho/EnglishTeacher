@@ -20,7 +20,11 @@ public class AppDbContext
     {
         base.OnModelCreating(builder);
 
-        // Aqui você pode configurar entidades futuramente
-        // builder.Entity<Student>().ToTable("Students");
+        // Aplica todas as configurações de entidades (Student, Teacher, etc.)
+        builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // Filtro global: só alunos ativos
+        builder.Entity<Student>()
+               .HasQueryFilter(s => s.IsActive);
     }
 }

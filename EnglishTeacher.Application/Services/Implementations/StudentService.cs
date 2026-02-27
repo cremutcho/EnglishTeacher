@@ -19,10 +19,16 @@ public class StudentService : IStudentService
     }
 
     public async Task<IEnumerable<StudentResponseDto>> GetAllAsync(
+        bool includeInactive,
         CancellationToken cancellationToken)
     {
-        var students = await _context.Students
-            .AsNoTracking()
+        var query = _context.Students.AsNoTracking();
+
+        if (!includeInactive)
+            query = query.Where(s => s.IsActive);
+
+        var students = await query
+            .OrderBy(s => s.Name)
             .ToListAsync(cancellationToken);
 
         return _mapper.Map<IEnumerable<StudentResponseDto>>(students);
@@ -46,8 +52,11 @@ public class StudentService : IStudentService
         StudentCreateDto dto,
         CancellationToken cancellationToken)
     {
-        var student = _mapper.Map<Student>(dto);
-        student.Id = Guid.NewGuid();
+        var student = new Student(
+            dto.Name,
+            dto.Email,
+            dto.Age
+        );
 
         await _context.Students.AddAsync(student, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
@@ -61,28 +70,47 @@ public class StudentService : IStudentService
         CancellationToken cancellationToken)
     {
         var student = await _context.Students
-            .FindAsync([id], cancellationToken);
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
         if (student is null)
             return false;
 
-        _mapper.Map(dto, student);
+        student.Update(dto.Name, dto.Email, dto.Age);
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 
-    public async Task<bool> DeleteAsync(
+    public async Task<bool> DeactivateAsync(
         Guid id,
         CancellationToken cancellationToken)
     {
         var student = await _context.Students
-            .FindAsync([id], cancellationToken);
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
         if (student is null)
             return false;
 
-        _context.Students.Remove(student);
+        student.Deactivate();
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
+    public async Task<bool> ActivateAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var student = await _context.Students
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+
+        if (student is null)
+            return false;
+
+        student.Activate();
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
