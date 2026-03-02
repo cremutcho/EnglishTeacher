@@ -2,12 +2,15 @@ using EnglishTeacher.Infrastructure.Data;
 using EnglishTeacher.Application.Mappings;
 using EnglishTeacher.Application.Services.Interfaces;
 using EnglishTeacher.Application.Services.Implementations;
+using EnglishTeacher.API.Middlewares;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using System.Text;
-using EnglishTeacher.API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,19 +20,86 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // ======================================
+// 🔹 Banco de Dados (EF Core)
+// ======================================
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ======================================
+// 🔐 Identity Configuration
+// ======================================
+builder.Services
+    .AddIdentity<IdentityUser, IdentityRole>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequiredLength = 6;
+    })
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+// ======================================
+// 🔐 JWT Configuration
+// ======================================
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new Exception("JWT Key não configurada no appsettings.json");
+
+if (string.IsNullOrWhiteSpace(jwtIssuer))
+    throw new Exception("JWT Issuer não configurado no appsettings.json");
+
+if (string.IsNullOrWhiteSpace(jwtAudience))
+    throw new Exception("JWT Audience não configurado no appsettings.json");
+
+var key = Encoding.UTF8.GetBytes(jwtKey);
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+
+            ValidateIssuer = true,
+            ValidateAudience = true,
+
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+// ======================================
 // 🔹 Swagger + JWT
 // ======================================
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    options.SwaggerDoc("v3", new OpenApiInfo
     {
         Title = "EnglishTeacher API",
-        Version = "v1",
-        Description = "API para gerenciamento de alunos e professores"
+        Version = "v3",
+        Description = "API para gerenciamento de alunos e professores (V3)"
     });
 
-    // 🔐 JWT no Swagger
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -57,7 +127,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ======================================
-// 🔹 AutoMapper
+// 🔹 AutoMapper (VERSÃO COMPATÍVEL)
 // ======================================
 builder.Services.AddAutoMapper(cfg =>
 {
@@ -68,57 +138,7 @@ builder.Services.AddAutoMapper(cfg =>
 // 🔹 Services (Application Layer)
 // ======================================
 builder.Services.AddScoped<IStudentService, StudentService>();
-
-// ======================================
-// 🔹 Banco de Dados (EF Core)
-// ======================================
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// ======================================
-// 🔐 JWT Configuration
-// ======================================
-var jwtKey = builder.Configuration["Jwt:Key"];
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtAudience = builder.Configuration["Jwt:Audience"];
-
-if (string.IsNullOrWhiteSpace(jwtKey))
-    throw new Exception("JWT Key não configurada no appsettings.json");
-
-if (string.IsNullOrWhiteSpace(jwtIssuer))
-    throw new Exception("JWT Issuer não configurado no appsettings.json");
-
-if (string.IsNullOrWhiteSpace(jwtAudience))
-    throw new Exception("JWT Audience não configurado no appsettings.json");
-
-var key = Encoding.UTF8.GetBytes(jwtKey);
-
-// ======================================
-// 🔐 Authentication
-// ======================================
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-
-            ValidateIssuer = true,
-            ValidateAudience = true,
-
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // ======================================
 // 🔹 Build
@@ -133,9 +153,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        // ✅ CORREÇÃO DEFINITIVA DO ERRO
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "EnglishTeacher API v1");
-        c.RoutePrefix = string.Empty; // Swagger na raiz
+        c.SwaggerEndpoint("/swagger/v3/swagger.json", "EnglishTeacher API v3");
+        c.RoutePrefix = string.Empty;
     });
 }
 
@@ -143,7 +162,7 @@ app.MapGet("/", () => "EnglishTeacher API rodando 🚀");
 
 app.UseHttpsRedirection();
 
-// ✅ Middleware global de exceção (DEVE vir antes de tudo)
+// ✅ Middleware global de exceção
 app.UseMiddleware<ExceptionMiddleware>();
 
 // 🔐 Autenticação e Autorização
