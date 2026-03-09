@@ -26,6 +26,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
 // ======================================
 // 🔐 Identity Configuration
 // ======================================
@@ -40,6 +41,7 @@ builder.Services
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
 
 // ======================================
 // 🔐 JWT Configuration
@@ -86,6 +88,7 @@ builder.Services
         };
     });
 
+
 // ======================================
 // 🔹 Swagger + JWT
 // ======================================
@@ -93,11 +96,11 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v3", new OpenApiInfo
+    options.SwaggerDoc("v4", new OpenApiInfo
     {
         Title = "EnglishTeacher API",
-        Version = "v3",
-        Description = "API para gerenciamento de alunos e professores (V3)"
+        Version = "v4",
+        Description = "API para gerenciamento de alunos e professores"
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -126,13 +129,15 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+
 // ======================================
-// 🔹 AutoMapper (VERSÃO COMPATÍVEL)
+// 🔹 AutoMapper (compatível com sua versão)
 // ======================================
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<StudentProfile>();
 });
+
 
 // ======================================
 // 🔹 Services (Application Layer)
@@ -140,20 +145,24 @@ builder.Services.AddAutoMapper(cfg =>
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+
 // ======================================
 // 🔹 Build
 // ======================================
 var app = builder.Build();
 
+
 // ======================================
-// 🔹 Pipeline HTTP
+// 🔹 Middleware Pipeline
 // ======================================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v3/swagger.json", "EnglishTeacher API v3");
+        c.SwaggerEndpoint("/swagger/v4/swagger.json", "EnglishTeacher API v4");
         c.RoutePrefix = string.Empty;
     });
 }
@@ -162,7 +171,7 @@ app.MapGet("/", () => "EnglishTeacher API rodando 🚀");
 
 app.UseHttpsRedirection();
 
-// ✅ Middleware global de exceção
+// 🔹 Middleware global de exceção
 app.UseMiddleware<ExceptionMiddleware>();
 
 // 🔐 Autenticação e Autorização

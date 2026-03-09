@@ -1,5 +1,7 @@
 using AutoMapper;
+using EnglishTeacher.Application.Common;
 using EnglishTeacher.Application.DTOs.Students;
+using EnglishTeacher.Application.Filters;
 using EnglishTeacher.Application.Services.Interfaces;
 using EnglishTeacher.Domain.Entities;
 using EnglishTeacher.Infrastructure.Data;
@@ -18,20 +20,44 @@ public class StudentService : IStudentService
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<StudentResponseDto>> GetAllAsync(
+    public async Task<PagedResult<StudentResponseDto>> GetAllAsync(
+        PaginationParams pagination,
+        StudentFilterParams filter,
         bool includeInactive,
         CancellationToken cancellationToken)
     {
-        var query = _context.Students.AsNoTracking();
+        var query = _context.Students
+            .AsNoTracking()
+            .AsQueryable();
 
+        // 🔹 filtro ativo/inativo
         if (!includeInactive)
             query = query.Where(s => s.IsActive);
 
+        // 🔹 filtro por nome
+        if (!string.IsNullOrWhiteSpace(filter.Name))
+            query = query.Where(s => s.Name.Contains(filter.Name));
+
+        // 🔹 filtro por idade
+        if (filter.Age.HasValue)
+            query = query.Where(s => s.Age == filter.Age.Value);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
         var students = await query
             .OrderBy(s => s.Name)
+            .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+            .Take(pagination.PageSize)
             .ToListAsync(cancellationToken);
 
-        return _mapper.Map<IEnumerable<StudentResponseDto>>(students);
+        var dto = _mapper.Map<List<StudentResponseDto>>(students);
+
+        return new PagedResult<StudentResponseDto>(
+            dto,
+            totalCount,
+            pagination.PageNumber,
+            pagination.PageSize
+        );
     }
 
     public async Task<StudentResponseDto?> GetByIdAsync(

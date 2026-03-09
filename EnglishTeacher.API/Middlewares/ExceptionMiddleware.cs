@@ -8,7 +8,9 @@ public class ExceptionMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionMiddleware> _logger;
 
-    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+    public ExceptionMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -20,21 +22,32 @@ public class ExceptionMiddleware
         {
             await _next(context);
         }
+
         catch (KeyNotFoundException ex)
         {
-            _logger.LogWarning(ex, "Recurso não encontrado.");
-            await HandleExceptionAsync(context, HttpStatusCode.NotFound, ex.Message);
+            _logger.LogWarning(ex, "Resource not found.");
+            await HandleExceptionAsync(
+                context,
+                HttpStatusCode.NotFound,
+                ex.Message);
         }
+
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Erro de validação.");
-            await HandleExceptionAsync(context, HttpStatusCode.BadRequest, ex.Message);
+            _logger.LogWarning(ex, "Validation error.");
+            await HandleExceptionAsync(
+                context,
+                HttpStatusCode.BadRequest,
+                ex.Message);
         }
+
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro interno no servidor.");
-            await HandleExceptionAsync(context, HttpStatusCode.InternalServerError, 
-                "Ocorreu um erro interno no servidor.");
+            _logger.LogError(ex, "Unhandled server error.");
+            await HandleExceptionAsync(
+                context,
+                HttpStatusCode.InternalServerError,
+                "An unexpected error occurred.");
         }
     }
 
@@ -49,10 +62,13 @@ public class ExceptionMiddleware
         var response = new
         {
             success = false,
-            errors = new[] { message }
+            statusCode = (int)statusCode,
+            message = message,
+            timestamp = DateTime.UtcNow
         };
 
         var json = JsonSerializer.Serialize(response);
+
         await context.Response.WriteAsync(json);
     }
 }

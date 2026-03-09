@@ -1,5 +1,7 @@
+using EnglishTeacher.Application.Common;
 using EnglishTeacher.Application.DTOs.Students;
 using EnglishTeacher.Application.Services.Interfaces;
+using EnglishTeacher.Application.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishTeacher.API.Controllers;
@@ -15,14 +17,25 @@ public class StudentsController : ControllerBase
         _service = service;
     }
 
-    // GET: api/students?includeInactive=false
+    // GET: api/students?pageNumber=1&pageSize=10&name=Lucas&includeInactive=false
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<StudentResponseDto>>> GetAll(
-        [FromQuery] bool includeInactive = false,
-        CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PagedResult<StudentResponseDto>>> GetAll(
+        [FromQuery] StudentFilterParams filter,
+        CancellationToken cancellationToken)
     {
-        var students = await _service.GetAllAsync(includeInactive, cancellationToken);
-        return Ok(students);
+        var pagination = new PaginationParams
+        {
+            PageNumber = filter.PageNumber,
+            PageSize = filter.PageSize
+        };
+
+        var result = await _service.GetAllAsync(
+            pagination,
+            filter,
+            filter.IncludeInactive,
+            cancellationToken);
+
+        return Ok(result);
     }
 
     // GET: api/students/{id}
@@ -75,7 +88,6 @@ public class StudentsController : ControllerBase
     }
 
     // DELETE: api/students/{id}
-    // Soft Delete (Deactivate)
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Deactivate(
         Guid id,

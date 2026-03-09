@@ -1,10 +1,14 @@
+using EnglishTeacher.Application.Common;
 using EnglishTeacher.Application.DTOs.Students;
+using EnglishTeacher.Application.Filters;
 
 namespace EnglishTeacher.Application.Services.Interfaces;
 
 public interface IStudentService
 {
-    Task<IEnumerable<StudentResponseDto>> GetAllAsync(
+    Task<PagedResult<StudentResponseDto>> GetAllAsync(
+        PaginationParams pagination,
+        StudentFilterParams filter,
         bool includeInactive,
         CancellationToken cancellationToken);
 
