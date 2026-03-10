@@ -21,9 +21,7 @@ public class StudentService : IStudentService
     }
 
     public async Task<PagedResult<StudentResponseDto>> GetAllAsync(
-        PaginationParams pagination,
         StudentFilterParams filter,
-        bool includeInactive,
         CancellationToken cancellationToken)
     {
         var query = _context.Students
@@ -31,7 +29,7 @@ public class StudentService : IStudentService
             .AsQueryable();
 
         // 🔹 filtro ativo/inativo
-        if (!includeInactive)
+        if (!filter.IncludeInactive)
             query = query.Where(s => s.IsActive);
 
         // 🔹 filtro por nome
@@ -46,8 +44,8 @@ public class StudentService : IStudentService
 
         var students = await query
             .OrderBy(s => s.Name)
-            .Skip((pagination.PageNumber - 1) * pagination.PageSize)
-            .Take(pagination.PageSize)
+            .Skip((filter.PageNumber - 1) * filter.PageSize)
+            .Take(filter.PageSize)
             .ToListAsync(cancellationToken);
 
         var dto = _mapper.Map<List<StudentResponseDto>>(students);
@@ -55,8 +53,8 @@ public class StudentService : IStudentService
         return new PagedResult<StudentResponseDto>(
             dto,
             totalCount,
-            pagination.PageNumber,
-            pagination.PageSize
+            filter.PageNumber,
+            filter.PageSize
         );
     }
 

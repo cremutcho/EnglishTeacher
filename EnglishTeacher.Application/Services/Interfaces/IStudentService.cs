@@ -7,9 +7,7 @@ namespace EnglishTeacher.Application.Services.Interfaces;
 public interface IStudentService
 {
     Task<PagedResult<StudentResponseDto>> GetAllAsync(
-        PaginationParams pagination,
         StudentFilterParams filter,
-        bool includeInactive,
         CancellationToken cancellationToken);
 
     Task<StudentResponseDto?> GetByIdAsync(

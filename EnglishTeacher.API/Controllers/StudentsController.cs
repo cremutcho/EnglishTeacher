@@ -23,16 +23,8 @@ public class StudentsController : ControllerBase
         [FromQuery] StudentFilterParams filter,
         CancellationToken cancellationToken)
     {
-        var pagination = new PaginationParams
-        {
-            PageNumber = filter.PageNumber,
-            PageSize = filter.PageSize
-        };
-
         var result = await _service.GetAllAsync(
-            pagination,
             filter,
-            filter.IncludeInactive,
             cancellationToken);
 
         return Ok(result);
