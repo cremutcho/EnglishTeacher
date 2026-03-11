@@ -9,15 +9,71 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Mvc;
+
+using Serilog;
 
 using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.RateLimiting;
+
+
+// ======================================
+// 🔹 Configuração do Serilog
+// ======================================
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File(
+        "logs/log-.txt",
+        rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 🔹 Conectar Serilog ao ASP.NET
+builder.Host.UseSerilog();
+
 
 // ======================================
 // 🔹 Controllers
 // ======================================
 builder.Services.AddControllers();
+
+
+// ======================================
+// 🔹 API Versioning
+// ======================================
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+});
+
+
+// ======================================
+// 🔹 Rate Limiting
+// ======================================
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("fixed", config =>
+    {
+        config.PermitLimit = 100;
+        config.Window = TimeSpan.FromMinutes(1);
+        config.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        config.QueueLimit = 10;
+    });
+});
+
+
+// ======================================
+// 🔹 Health Checks
+// ======================================
+builder.Services.AddHealthChecks();
+
 
 // ======================================
 // 🔹 Banco de Dados (EF Core)
@@ -131,7 +187,7 @@ builder.Services.AddSwaggerGen(options =>
 
 
 // ======================================
-// 🔹 AutoMapper (compatível com sua versão)
+// 🔹 AutoMapper
 // ======================================
 builder.Services.AddAutoMapper(cfg =>
 {
@@ -156,6 +212,13 @@ var app = builder.Build();
 // 🔹 Middleware Pipeline
 // ======================================
 
+// 🔹 Log automático das requisições HTTP
+app.UseSerilogRequestLogging();
+
+// 🔹 Rate Limiting
+app.UseRateLimiter();
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -167,7 +230,13 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+
+// 🔹 Endpoint inicial
 app.MapGet("/", () => "EnglishTeacher API rodando 🚀");
+
+// 🔹 Health Check
+app.MapHealthChecks("/health");
+
 
 app.UseHttpsRedirection();
 

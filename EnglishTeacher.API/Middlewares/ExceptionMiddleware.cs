@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using EnglishTeacher.Application.Common.Exceptions;
 
 namespace EnglishTeacher.API.Middlewares;
 
@@ -22,40 +23,46 @@ public class ExceptionMiddleware
         {
             await _next(context);
         }
-
-        catch (KeyNotFoundException ex)
-        {
-            _logger.LogWarning(ex, "Resource not found.");
-            await HandleExceptionAsync(
-                context,
-                HttpStatusCode.NotFound,
-                ex.Message);
-        }
-
-        catch (ArgumentException ex)
-        {
-            _logger.LogWarning(ex, "Validation error.");
-            await HandleExceptionAsync(
-                context,
-                HttpStatusCode.BadRequest,
-                ex.Message);
-        }
-
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled server error.");
-            await HandleExceptionAsync(
-                context,
-                HttpStatusCode.InternalServerError,
-                "An unexpected error occurred.");
+            await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static async Task HandleExceptionAsync(
-        HttpContext context,
-        HttpStatusCode statusCode,
-        string message)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        HttpStatusCode statusCode;
+        string message;
+
+        switch (exception)
+        {
+            // Custom Exceptions da aplicação
+            case BaseException baseException:
+                statusCode = (HttpStatusCode)baseException.StatusCode;
+                message = baseException.Message;
+                _logger.LogWarning(exception, "Application exception occurred.");
+                break;
+
+            // Exceções padrão
+            case KeyNotFoundException:
+                statusCode = HttpStatusCode.NotFound;
+                message = exception.Message;
+                _logger.LogWarning(exception, "Resource not found.");
+                break;
+
+            case ArgumentException:
+                statusCode = HttpStatusCode.BadRequest;
+                message = exception.Message;
+                _logger.LogWarning(exception, "Validation error.");
+                break;
+
+            default:
+                statusCode = HttpStatusCode.InternalServerError;
+                message = "An unexpected error occurred.";
+                _logger.LogError(exception, "Unhandled server error.");
+                break;
+        }
+
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
 
@@ -63,11 +70,16 @@ public class ExceptionMiddleware
         {
             success = false,
             statusCode = (int)statusCode,
-            message = message,
+            message,
             timestamp = DateTime.UtcNow
         };
 
-        var json = JsonSerializer.Serialize(response);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        var json = JsonSerializer.Serialize(response, options);
 
         await context.Response.WriteAsync(json);
     }
