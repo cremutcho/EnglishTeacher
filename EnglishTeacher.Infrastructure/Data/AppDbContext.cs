@@ -5,8 +5,7 @@ using EnglishTeacher.Domain.Entities;
 
 namespace EnglishTeacher.Infrastructure.Data;
 
-public class AppDbContext 
-    : IdentityDbContext<IdentityUser>
+public class AppDbContext : IdentityDbContext<IdentityUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -15,16 +14,22 @@ public class AppDbContext
 
     public DbSet<Student> Students { get; set; }
     public DbSet<Teacher> Teachers { get; set; }
+    public DbSet<Lesson> Lessons { get; set; }
+    public DbSet<StudentProgress> StudentProgresses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        // Aplica todas as configurações de entidades (Student, Teacher, etc.)
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Filtro global: só alunos ativos
         builder.Entity<Student>()
-               .HasQueryFilter(s => s.IsActive);
+            .HasQueryFilter(s => s.IsActive);
+
+        builder.Entity<StudentProgress>()
+            .HasQueryFilter(sp => sp.IsActive);
+
+        builder.Entity<Teacher>()
+            .HasQueryFilter(t => t.IsActive);
     }
 }
