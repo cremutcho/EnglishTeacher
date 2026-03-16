@@ -17,34 +17,27 @@ public class StudentsController : ControllerBase
         _service = service;
     }
 
-    // GET: api/students?pageNumber=1&pageSize=10&name=Lucas&includeInactive=false
     [HttpGet]
     public async Task<ActionResult<PagedResult<StudentResponseDto>>> GetAll(
         [FromQuery] StudentFilterParams filter,
         CancellationToken cancellationToken)
     {
-        var result = await _service.GetAllAsync(
-            filter,
-            cancellationToken);
-
+        var result = await _service.GetAllAsync(filter, cancellationToken);
         return Ok(result);
     }
 
-    // GET: api/students/{id}
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<StudentResponseDto>> GetById(
         Guid id,
         CancellationToken cancellationToken)
     {
         var student = await _service.GetByIdAsync(id, cancellationToken);
-
         if (student is null)
             return NotFound(new { message = "Aluno não encontrado." });
 
         return Ok(student);
     }
 
-    // POST: api/students
     [HttpPost]
     public async Task<ActionResult<StudentResponseDto>> Create(
         [FromBody] StudentCreateDto dto,
@@ -61,7 +54,6 @@ public class StudentsController : ControllerBase
             created);
     }
 
-    // PUT: api/students/{id}
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         Guid id,
@@ -79,7 +71,6 @@ public class StudentsController : ControllerBase
         return NoContent();
     }
 
-    // DELETE: api/students/{id}
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Deactivate(
         Guid id,
@@ -93,7 +84,6 @@ public class StudentsController : ControllerBase
         return NoContent();
     }
 
-    // PATCH: api/students/{id}/activate
     [HttpPatch("{id:guid}/activate")]
     public async Task<IActionResult> Activate(
         Guid id,

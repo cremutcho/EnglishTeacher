@@ -55,6 +55,41 @@ public class StudentProgressController : ControllerBase
         return Ok(progress);
     }
 
+    // 🔵 NOVO ENDPOINT: Dashboard do aluno
+    // GET: api/StudentProgress/dashboard/{studentId}
+    [HttpGet("dashboard/{studentId}")]
+    public async Task<IActionResult> GetDashboard(Guid studentId)
+    {
+        var progress = await _context.StudentProgresses
+            .Where(sp => sp.StudentId == studentId)
+            .ToListAsync();
+
+        if (!progress.Any())
+            return NotFound("Nenhum progresso encontrado para este aluno.");
+
+        var totalLessons = progress.Count;
+
+        var completedLessons = progress.Count(p => p.Status == "Completed");
+
+        var averageScore = progress
+            .Where(p => p.Score.HasValue)
+            .Select(p => p.Score!.Value)
+            .DefaultIfEmpty(0)
+            .Average();
+
+        var completionRate = totalLessons == 0
+            ? 0
+            : (completedLessons * 100.0) / totalLessons;
+
+        return Ok(new
+        {
+            totalLessons,
+            completedLessons,
+            averageScore,
+            completionRate
+        });
+    }
+
     // POST: api/StudentProgress
     [HttpPost]
     public async Task<ActionResult<StudentProgress>> Create([FromBody] CreateStudentProgressDto dto)
@@ -65,7 +100,6 @@ public class StudentProgressController : ControllerBase
         if (student == null || lesson == null)
             return BadRequest("Aluno ou Lesson inválido.");
 
-        // Evita progresso duplicado
         var exists = await _context.StudentProgresses
             .AnyAsync(sp => sp.StudentId == dto.StudentId && sp.LessonId == dto.LessonId);
 

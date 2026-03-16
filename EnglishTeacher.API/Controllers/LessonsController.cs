@@ -18,6 +18,9 @@ public class LessonsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateLessonDto dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
         var lesson = await _lessonService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = lesson.Id }, lesson);
     }
@@ -29,7 +32,7 @@ public class LessonsController : ControllerBase
         return Ok(lessons);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var lesson = await _lessonService.GetByIdAsync(id);
@@ -40,9 +43,12 @@ public class LessonsController : ControllerBase
         return Ok(lesson);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateLessonDto dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
         var updated = await _lessonService.UpdateAsync(id, dto);
 
         if (!updated)
@@ -51,7 +57,7 @@ public class LessonsController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var deleted = await _lessonService.DeleteAsync(id);

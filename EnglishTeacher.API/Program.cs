@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +30,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
 // ======================================
 // 🔐 Identity Configuration
 // ======================================
@@ -44,7 +44,6 @@ builder.Services
     })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
-
 
 // ======================================
 // 🔐 JWT Configuration
@@ -85,7 +84,6 @@ builder.Services
         };
     });
 
-
 // ======================================
 // 🌐 CORS (para frontend)
 // ======================================
@@ -99,7 +97,6 @@ builder.Services.AddCors(options =>
                   .AllowAnyHeader();
         });
 });
-
 
 // ======================================
 // 🔹 Swagger + JWT
@@ -141,15 +138,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
 // ======================================
 // 🔹 AutoMapper
 // ======================================
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.AddProfile<StudentProfile>();
-});
-
+// Usando versão 12.0.1 para compatibilidade
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // ======================================
 // 🔹 Services
@@ -157,13 +150,13 @@ builder.Services.AddAutoMapper(cfg =>
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
-
+builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
 
 // ======================================
 // 🔹 Build
 // ======================================
 var app = builder.Build();
-
 
 // ======================================
 // 🔹 Middleware Pipeline
@@ -171,7 +164,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v6/swagger.json", "EnglishTeacher API v6");

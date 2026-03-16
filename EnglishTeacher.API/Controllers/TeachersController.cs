@@ -1,7 +1,8 @@
+using EnglishTeacher.Application.DTOs.Teachers;
+using EnglishTeacher.Domain.Entities;
+using EnglishTeacher.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using EnglishTeacher.Infrastructure.Data;
-using EnglishTeacher.Domain.Entities;
 
 namespace EnglishTeacher.API.Controllers;
 
@@ -16,7 +17,6 @@ public class TeachersController : ControllerBase
         _context = context;
     }
 
-    // GET: api/teachers
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -24,51 +24,52 @@ public class TeachersController : ControllerBase
         return Ok(teachers);
     }
 
-    // GET: api/teachers/{id}
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var teacher = await _context.Teachers.FindAsync(id);
-        if (teacher == null)
-            return NotFound();
+        if (teacher == null) return NotFound();
         return Ok(teacher);
     }
 
-    // POST: api/teachers
     [HttpPost]
-    public async Task<IActionResult> Create(Teacher teacher)
+    public async Task<IActionResult> Create([FromBody] TeacherCreateDto dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var teacher = new Teacher(dto.Name, dto.Email, dto.Subject);
+
         _context.Teachers.Add(teacher);
         await _context.SaveChangesAsync();
+
         return CreatedAtAction(nameof(GetById), new { id = teacher.Id }, teacher);
     }
 
-    // PUT: api/teachers/{id}
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, Teacher updatedTeacher)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] TeacherUpdateDto dto)
     {
-        var teacher = await _context.Teachers.FindAsync(id);
-        if (teacher == null)
-            return NotFound();
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        // ✅ Usando método Update da entidade
-        teacher.Update(updatedTeacher.Name, updatedTeacher.Email, updatedTeacher.Subject);
+        var teacher = await _context.Teachers.FindAsync(id);
+        if (teacher == null) return NotFound();
+
+        teacher.Update(dto.Name, dto.Email, dto.Subject);
 
         await _context.SaveChangesAsync();
         return NoContent();
     }
 
-    // DELETE: api/teachers/{id}
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var teacher = await _context.Teachers.FindAsync(id);
-        if (teacher == null)
-            return NotFound();
+        if (teacher == null) return NotFound();
 
         teacher.Deactivate(); // Soft delete
-
         await _context.SaveChangesAsync();
+
         return NoContent();
     }
 }

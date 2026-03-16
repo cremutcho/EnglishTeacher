@@ -12,6 +12,8 @@ public class Lesson : BaseEntity
 
     public Teacher Teacher { get; private set; } = null!;
 
+    public ICollection<Exercise> Exercises { get; private set; } = new List<Exercise>();
+
     private Lesson() { }
 
     public Lesson(string title, string description, string level, Guid teacherId)
