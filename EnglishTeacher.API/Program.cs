@@ -1,7 +1,5 @@
 using EnglishTeacher.Infrastructure.Data;
 using EnglishTeacher.Application.Mappings;
-
-using EnglishTeacher.Application.Interfaces;
 using EnglishTeacher.Application.Services.Implementations;
 using EnglishTeacher.Application.Services.Interfaces;
 
@@ -14,7 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
+using EnglishTeacher.Infrastructure.Repositories.Interfaces;
+using EnglishTeacher.Infrastructure.Repositories.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -152,6 +151,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+builder.Services.AddScoped<ILessonService, LessonService>();
 
 // ======================================
 // 🔹 Build

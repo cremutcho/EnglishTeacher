@@ -4,19 +4,19 @@ using EnglishTeacher.Application.DTOs.Students;
 using EnglishTeacher.Application.Filters;
 using EnglishTeacher.Application.Services.Interfaces;
 using EnglishTeacher.Domain.Entities;
-using EnglishTeacher.Infrastructure.Data;
+using EnglishTeacher.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishTeacher.Application.Services.Implementations;
 
 public class StudentService : IStudentService
 {
-    private readonly AppDbContext _context;
+    private readonly IStudentRepository _repository;
     private readonly IMapper _mapper;
 
-    public StudentService(AppDbContext context, IMapper mapper)
+    public StudentService(IStudentRepository repository, IMapper mapper)
     {
-        _context = context;
+        _repository = repository;
         _mapper = mapper;
     }
 
@@ -24,9 +24,8 @@ public class StudentService : IStudentService
         StudentFilterParams filter,
         CancellationToken cancellationToken)
     {
-        var query = _context.Students
-            .AsNoTracking()
-            .AsQueryable();
+        var query = _repository.Query()
+            .AsNoTracking();
 
         // 🔹 filtro ativo/inativo
         if (!filter.IncludeInactive)
@@ -62,9 +61,7 @@ public class StudentService : IStudentService
         Guid id,
         CancellationToken cancellationToken)
     {
-        var student = await _context.Students
-            .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        var student = await _repository.GetByIdAsync(id, cancellationToken);
 
         if (student is null)
             return null;
@@ -82,8 +79,8 @@ public class StudentService : IStudentService
             dto.Age
         );
 
-        await _context.Students.AddAsync(student, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.AddAsync(student, cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<StudentResponseDto>(student);
     }
@@ -93,15 +90,14 @@ public class StudentService : IStudentService
         StudentUpdateDto dto,
         CancellationToken cancellationToken)
     {
-        var student = await _context.Students
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        var student = await _repository.GetByIdAsync(id, cancellationToken);
 
         if (student is null)
             return false;
 
         student.Update(dto.Name, dto.Email, dto.Age);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -110,15 +106,14 @@ public class StudentService : IStudentService
         Guid id,
         CancellationToken cancellationToken)
     {
-        var student = await _context.Students
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        var student = await _repository.GetByIdAsync(id, cancellationToken);
 
         if (student is null)
             return false;
 
         student.Deactivate();
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -127,15 +122,14 @@ public class StudentService : IStudentService
         Guid id,
         CancellationToken cancellationToken)
     {
-        var student = await _context.Students
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        var student = await _repository.GetByIdAsync(id, cancellationToken);
 
         if (student is null)
             return false;
 
         student.Activate();
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return true;
     }

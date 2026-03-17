@@ -2,25 +2,26 @@ using AutoMapper;
 using EnglishTeacher.Application.DTOs.Teachers;
 using EnglishTeacher.Application.Services.Interfaces;
 using EnglishTeacher.Domain.Entities;
-using EnglishTeacher.Infrastructure.Data;
+using EnglishTeacher.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishTeacher.Application.Services.Implementations;
 
 public class TeacherService : ITeacherService
 {
-    private readonly AppDbContext _context;
+    private readonly ITeacherRepository _repository;
     private readonly IMapper _mapper;
 
-    public TeacherService(AppDbContext context, IMapper mapper)
+    public TeacherService(ITeacherRepository repository, IMapper mapper)
     {
-        _context = context;
+        _repository = repository;
         _mapper = mapper;
     }
 
     public async Task<IEnumerable<TeacherResponseDto>> GetAllAsync(CancellationToken cancellationToken)
     {
-        var teachers = await _context.Teachers
+        var teachers = await _repository
+            .Query()
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -29,9 +30,7 @@ public class TeacherService : ITeacherService
 
     public async Task<TeacherResponseDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var teacher = await _context.Teachers
-            .AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+        var teacher = await _repository.GetByIdAsync(id, cancellationToken);
 
         if (teacher is null)
             return null;
@@ -47,16 +46,15 @@ public class TeacherService : ITeacherService
             dto.Subject
         );
 
-        await _context.Teachers.AddAsync(teacher, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _repository.AddAsync(teacher, cancellationToken);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<TeacherResponseDto>(teacher);
     }
 
     public async Task<bool> UpdateAsync(Guid id, TeacherUpdateDto dto, CancellationToken cancellationToken)
     {
-        var teacher = await _context.Teachers
-            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+        var teacher = await _repository.GetByIdAsync(id, cancellationToken);
 
         if (teacher is null)
             return false;
@@ -67,22 +65,23 @@ public class TeacherService : ITeacherService
             dto.Subject
         );
 
-        await _context.SaveChangesAsync(cancellationToken);
+        _repository.Update(teacher);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return true;
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        var teacher = await _context.Teachers
-            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+        var teacher = await _repository.GetByIdAsync(id, cancellationToken);
 
         if (teacher is null)
             return false;
 
         teacher.Deactivate(); // Soft delete
 
-        await _context.SaveChangesAsync(cancellationToken);
+        _repository.Update(teacher);
+        await _repository.SaveChangesAsync(cancellationToken);
 
         return true;
     }
