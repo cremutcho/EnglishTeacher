@@ -1,42 +1,39 @@
 # 🚀 EnglishTeacher API
 
-API REST desenvolvida em .NET 8 para gerenciamento de alunos e professores.
+API REST desenvolvida em **.NET 8** para uma plataforma de ensino de inglês, inspirada em aplicações como Duolingo.
 
-O projeto foi construído com foco em boas práticas do mercado, aplicando conceitos como Clean Architecture, separação de responsabilidades e princípios SOLID.
+O projeto evoluiu de um CRUD simples para um backend completo com **analytics, sessões de aprendizado e controle de progresso**.
 
 ---
 
 ## 📚 Sobre o Projeto
 
-A **EnglishTeacher API** é um backend responsável pelo gerenciamento de alunos, permitindo:
+A **EnglishTeacher API** é responsável por gerenciar o fluxo de aprendizado de alunos, incluindo:
 
 - Cadastro de alunos e professores
-- Atualização de dados
-- Consulta individual e listagem
-- Exclusão lógica (Soft Delete)
-- **Autenticação JWT e controle de roles** (Admin, Teacher, Student)
-- Endpoints protegidos por roles
-
-Esta é a **Versão 3 (V3)** do projeto, incluindo melhorias em segurança e gerenciamento de acesso.
+- Gerenciamento de aulas e exercícios
+- Sessões de estudo (Learning Sessions)
+- Cálculo de desempenho do aluno
+- Analytics de aprendizado
+- Ranking (Leaderboard)
 
 ---
 
 ## 🏗 Arquitetura
 
-O projeto segue a separação em camadas:
+O projeto segue uma arquitetura em camadas:
 
 - **Domain** → Entidades e regras de negócio  
-- **Application** → Serviços, DTOs e lógica de autenticação  
+- **Application** → DTOs e lógica da aplicação  
 - **Infrastructure** → Persistência e DbContext  
-- **API** → Controllers e configuração da aplicação  
+- **API** → Controllers e endpoints  
 
 ### Princípios aplicados
 
-- SOLID (com foco em SRP)  
+- SOLID  
 - Separação de responsabilidades  
 - Injeção de dependência  
 - Boas práticas com Entity Framework Core  
-- Autenticação e autorização seguras com JWT  
 
 ---
 
@@ -51,21 +48,30 @@ O projeto segue a separação em camadas:
 
 ---
 
-## 🧠 Melhorias da Versão 3
+## 📦 Funcionalidades
 
-- Autenticação JWT funcional  
-- Controle de roles (Admin, Teacher, Student)  
-- Endpoints protegidos por roles  
-- Registro e login de usuários com validação de permissões  
-- Refatoração de DTOs e serviços para suportar autenticação e roles  
-- Limpeza e organização final do repositório  
+### 👨‍🎓 Students
+- CRUD completo  
+- Acompanhamento de progresso  
+
+### 👨‍🏫 Teachers
+- CRUD completo  
+
+### 📚 Lessons
+- Gerenciamento de aulas  
+
+### 📝 Exercises
+- Exercícios com validação de resposta  
 
 ---
 
-## ▶️ Como Executar o Projeto
+## 🧠 Learning Sessions
 
-```bash
-git clone https://github.com/cremutcho/EnglishTeacher.git
-cd EnglishTeacher
-dotnet restore
-dotnet run
+Fluxo completo de aprendizado:
+
+- Iniciar sessão de estudo  
+- Responder exercícios  
+- Registro de acertos  
+- Finalização com cálculo de score  
+
+### Endpoints
