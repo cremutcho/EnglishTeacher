@@ -75,3 +75,70 @@ Fluxo completo de aprendizado:
 - Finalização com cálculo de score  
 
 ### Endpoints
+
+
+POST /api/learningsessions/start
+POST /api/learningsessions/answer
+POST /api/learningsessions/finish
+GET /api/learningsessions/{id}
+GET /api/learningsessions/student/{studentId}
+
+
+---
+
+## 📊 Analytics
+
+### 📈 Student Statistics
+
+- Total de sessões de estudo  
+- Total de exercícios  
+- Respostas corretas  
+- Taxa de acerto (%)  
+- Lições concluídas  
+
+
+GET /api/students/{id}/statistics
+
+
+---
+
+### 🥇 Leaderboard
+
+Ranking global dos alunos baseado em desempenho:
+
+
+GET /api/students/leaderboard
+
+
+---
+
+### 📚 Learning History
+
+Histórico completo de aprendizado do aluno:
+
+
+GET /api/students/{id}/learning-history
+
+
+---
+
+## 📊 Exemplo de resposta (Statistics)
+
+```json
+{
+  "student": "Andre",
+  "studySessions": 12,
+  "lessonsCompleted": 5,
+  "totalExercises": 140,
+  "correctAnswers": 112,
+  "accuracy": 80
+}
+▶️ Como Executar o Projeto
+git clone https://github.com/cremutcho/EnglishTeacher.git
+cd EnglishTeacher
+dotnet restore
+dotnet run
+
+Acesse o Swagger:
+
+https://localhost:{porta}/swagger
