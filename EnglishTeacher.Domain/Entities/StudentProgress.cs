@@ -6,29 +6,53 @@ public class StudentProgress : BaseEntity
 {
     public Guid StudentId { get; private set; }
     public Guid LessonId { get; private set; }
-    public DateTime CompletedAt { get; private set; }
-    public string? Status { get; private set; }
+
+    public int CompletedExercises { get; private set; }
+    public int TotalExercises { get; private set; }
+
+    public double ProgressPercentage { get; private set; }
+
+    public string Status { get; private set; } = "InProgress";
+
     public double? Score { get; private set; }
+
+    public DateTime LastUpdated { get; private set; }
 
     public Student Student { get; private set; } = null!;
     public Lesson Lesson { get; private set; } = null!;
 
-    private StudentProgress() { } // EF Core precisa
+    private StudentProgress() { } // EF Core
 
-    public StudentProgress(Guid studentId, Guid lessonId)
+    public StudentProgress(Guid studentId, Guid lessonId, int totalExercises)
     {
         Id = Guid.NewGuid();
         StudentId = studentId;
         LessonId = lessonId;
-        CompletedAt = DateTime.UtcNow;
+        TotalExercises = totalExercises;
+        CompletedExercises = 0;
+        ProgressPercentage = 0;
+        Status = "InProgress";
+        LastUpdated = DateTime.UtcNow;
         IsActive = true;
     }
 
-    // Novo método para atualizar status e score
-    public void UpdateProgress(string status, double? score)
+    public void RegisterExerciseCompletion()
     {
-        Status = status;
+        CompletedExercises++;
+
+        ProgressPercentage = (double)CompletedExercises / TotalExercises * 100;
+
+        LastUpdated = DateTime.UtcNow;
+
+        if (CompletedExercises >= TotalExercises)
+        {
+            Status = "Completed";
+        }
+    }
+
+    public void SetScore(double score)
+    {
         Score = score;
-        CompletedAt = DateTime.UtcNow; // atualiza a data da conclusão
+        LastUpdated = DateTime.UtcNow;
     }
 }

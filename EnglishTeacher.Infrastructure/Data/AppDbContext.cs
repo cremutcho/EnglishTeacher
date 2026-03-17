@@ -19,6 +19,8 @@ public class AppDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Exercise> Exercises { get; set; }
     public DbSet<StudentAnswer> StudentAnswers { get; set; }
 
+    public DbSet<LearningSession> LearningSessions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

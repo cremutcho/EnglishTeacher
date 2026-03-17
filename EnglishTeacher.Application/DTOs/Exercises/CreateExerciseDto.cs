@@ -1,3 +1,5 @@
+using EnglishTeacher.Domain.Enums;
+
 namespace EnglishTeacher.Application.DTOs.Exercises;
 
 public class CreateExerciseDto
@@ -7,6 +9,8 @@ public class CreateExerciseDto
     public string Question { get; set; } = string.Empty;
 
     public int Type { get; set; }
+
+    public int Difficulty { get; set; }
 
     public string? OptionsJson { get; set; }
 

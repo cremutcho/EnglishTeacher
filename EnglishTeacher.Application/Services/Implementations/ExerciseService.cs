@@ -3,6 +3,8 @@ using EnglishTeacher.Infrastructure.Data;
 using EnglishTeacher.Application.DTOs.Exercises;
 using EnglishTeacher.Application.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using EnglishTeacher.Domain.Entities;
+using EnglishTeacher.Domain.Enums;
 
 public class ExerciseService : IExerciseService
 {
@@ -21,6 +23,7 @@ public class ExerciseService : IExerciseService
             dto.LessonId,
             dto.Question,
             (ExerciseType)dto.Type,
+            (ExerciseDifficulty)dto.Difficulty,
             dto.OptionsJson,
             dto.Answer
         );

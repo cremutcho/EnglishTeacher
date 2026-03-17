@@ -32,7 +32,6 @@ public class StudentProgressController : ControllerBase
     public async Task<ActionResult<IEnumerable<StudentProgress>>> GetByStudent(Guid studentId)
     {
         var progress = await _context.StudentProgresses
-            .Include(sp => sp.Student)
             .Include(sp => sp.Lesson)
                 .ThenInclude(l => l.Teacher)
             .Where(sp => sp.StudentId == studentId)
@@ -47,15 +46,13 @@ public class StudentProgressController : ControllerBase
     {
         var progress = await _context.StudentProgresses
             .Include(sp => sp.Student)
-            .Include(sp => sp.Lesson)
-                .ThenInclude(l => l.Teacher)
             .Where(sp => sp.LessonId == lessonId)
             .ToListAsync();
 
         return Ok(progress);
     }
 
-    // 🔵 NOVO ENDPOINT: Dashboard do aluno
+    // 🔵 Dashboard do aluno
     // GET: api/StudentProgress/dashboard/{studentId}
     [HttpGet("dashboard/{studentId}")]
     public async Task<IActionResult> GetDashboard(Guid studentId)
@@ -106,24 +103,47 @@ public class StudentProgressController : ControllerBase
         if (exists)
             return BadRequest("Este aluno já possui progresso registrado para esta aula.");
 
-        var progress = new StudentProgress(dto.StudentId, dto.LessonId);
+        var progress = new StudentProgress(
+            dto.StudentId,
+            dto.LessonId,
+            dto.TotalExercises
+        );
 
         _context.StudentProgresses.Add(progress);
+
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetAll), new { id = progress.Id }, progress);
+        return Ok(progress);
     }
 
-    // PUT: api/StudentProgress/{id}
-    [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateStatus(Guid id, [FromBody] UpdateStudentProgressDto dto)
+    // PUT: api/StudentProgress/{id}/exercise
+    // Atualiza progresso quando aluno responde exercício
+    [HttpPut("{id}/exercise")]
+    public async Task<ActionResult> RegisterExercise(Guid id)
     {
         var progress = await _context.StudentProgresses.FindAsync(id);
 
         if (progress == null)
             return NotFound("Progresso não encontrado.");
 
-        progress.UpdateProgress(dto.Status, dto.Score);
+        progress.RegisterExerciseCompletion();
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // PUT: api/StudentProgress/{id}/score
+    // Atualiza score final da lesson
+    [HttpPut("{id}/score")]
+    public async Task<ActionResult> UpdateScore(Guid id, [FromBody] UpdateScoreDto dto)
+    {
+        var progress = await _context.StudentProgresses.FindAsync(id);
+
+        if (progress == null)
+            return NotFound("Progresso não encontrado.");
+
+        progress.SetScore(dto.Score);
 
         await _context.SaveChangesAsync();
 
@@ -131,17 +151,16 @@ public class StudentProgressController : ControllerBase
     }
 }
 
-
-// DTOs
-
 public class CreateStudentProgressDto
 {
     public Guid StudentId { get; set; }
+
     public Guid LessonId { get; set; }
+
+    public int TotalExercises { get; set; }
 }
 
-public class UpdateStudentProgressDto
+public class UpdateScoreDto
 {
-    public string Status { get; set; } = null!;
-    public double? Score { get; set; }
+    public double Score { get; set; }
 }
