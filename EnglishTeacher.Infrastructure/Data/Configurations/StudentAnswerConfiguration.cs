@@ -1,3 +1,4 @@
+using EnglishTeacher.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -7,21 +8,23 @@ public class StudentAnswerConfiguration : IEntityTypeConfiguration<StudentAnswer
     {
         builder.ToTable("StudentAnswers");
 
-        builder.HasKey(x => x.Id);
+        builder.HasKey(sa => sa.Id);
 
-        builder.Property(x => x.Answer)
+        builder.Property(sa => sa.Answer)
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.Property(x => x.IsCorrect)
+        builder.Property(sa => sa.IsCorrect)
             .IsRequired();
 
-        builder.HasOne(x => x.Student)
+        builder.HasOne(sa => sa.Student)
             .WithMany()
-            .HasForeignKey(x => x.StudentId);
+            .HasForeignKey(sa => sa.StudentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(x => x.Exercise)
+        builder.HasOne(sa => sa.Exercise)
             .WithMany()
-            .HasForeignKey(x => x.ExerciseId);
+            .HasForeignKey(sa => sa.ExerciseId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

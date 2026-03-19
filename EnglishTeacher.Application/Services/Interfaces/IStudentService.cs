@@ -30,4 +30,7 @@ public interface IStudentService
     Task<bool> ActivateAsync(
         Guid id,
         CancellationToken cancellationToken);
+
+    // 🔥 NOVO: Ranking de alunos por pontuação
+    Task<IEnumerable<StudentResponseDto>> GetRankingAsync();
 }

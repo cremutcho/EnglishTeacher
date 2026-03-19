@@ -26,9 +26,13 @@ public class MappingProfile : Profile
         CreateMap<CreateLessonDto, Lesson>();
         CreateMap<UpdateLessonDto, Lesson>();
 
-        // 🔹 Exercises
-        CreateMap<Exercise, ExerciseResponseDto>();
+        // 🔹 Exercises (🔥 CORRIGIDO)
+        CreateMap<Exercise, ExerciseResponseDto>()
+            .ForMember(dest => dest.Type,
+                opt => opt.MapFrom(src => src.Type.ToString()))
+            .ForMember(dest => dest.Difficulty,
+                opt => opt.MapFrom(src => src.Difficulty.ToString()));
+
         CreateMap<CreateExerciseDto, Exercise>();
-        // Mapeamento UpdateExerciseDto removido porque ainda não existe
     }
 }

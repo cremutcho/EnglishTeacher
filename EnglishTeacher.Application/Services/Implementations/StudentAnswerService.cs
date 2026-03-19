@@ -4,6 +4,8 @@ using EnglishTeacher.Domain.Entities;
 using EnglishTeacher.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
+namespace EnglishTeacher.Application.Services.Implementations;
+
 public class StudentAnswerService : IStudentAnswerService
 {
     private readonly AppDbContext _context;
@@ -21,17 +23,28 @@ public class StudentAnswerService : IStudentAnswerService
         if (exercise == null)
             throw new Exception("Exercise not found");
 
-        // Comparar resposta do aluno com a resposta correta
-        var isCorrect =
-            exercise.Answer?.Trim().ToLower() ==
-            dto.Answer.Trim().ToLower();
+        var student = await _context.Students
+            .FirstOrDefaultAsync(s => s.Id == dto.StudentId);
+
+        if (student == null)
+            throw new Exception("Student not found");
+
+        var isCorrect = exercise.CheckAnswer(dto.Answer);
 
         var studentAnswer = new StudentAnswer(
             dto.StudentId,
             dto.ExerciseId,
-            dto.Answer,
-            isCorrect
+            dto.Answer
         );
+
+        studentAnswer.SetCorrection(isCorrect);
+
+        // 🔥 XP
+        if (isCorrect)
+        {
+            var points = exercise.GetPoints();
+            student.AddScore(points);
+        }
 
         _context.StudentAnswers.Add(studentAnswer);
 

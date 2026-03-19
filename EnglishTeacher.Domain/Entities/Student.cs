@@ -8,6 +8,8 @@ public class Student : BaseEntity
     public string Email { get; private set; } = string.Empty;
     public int Age { get; private set; }
 
+    public int Score { get; private set; } // 🔥 NOVO
+
     protected Student() { }
 
     public Student(string name, string email, int age)
@@ -15,6 +17,7 @@ public class Student : BaseEntity
         SetName(name);
         SetEmail(email);
         SetAge(age);
+        Score = 0;
     }
 
     public void Update(string name, string email, int age)
@@ -24,6 +27,12 @@ public class Student : BaseEntity
         SetName(name);
         SetEmail(email);
         SetAge(age);
+    }
+
+    public void AddScore(int points) // 🔥 NOVO
+    {
+        if (points <= 0) return;
+        Score += points;
     }
 
     public void Deactivate()

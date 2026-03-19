@@ -2,7 +2,6 @@ using EnglishTeacher.Infrastructure.Data;
 using EnglishTeacher.Application.Mappings;
 using EnglishTeacher.Application.Services.Implementations;
 using EnglishTeacher.Application.Services.Interfaces;
-
 using EnglishTeacher.API.Middlewares;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -84,17 +83,16 @@ builder.Services
     });
 
 // ======================================
-// 🌐 CORS (para frontend)
+// 🌐 CORS
 // ======================================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-                  .AllowAnyMethod()
-                  .AllowAnyHeader();
-        });
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 // ======================================
@@ -140,21 +138,23 @@ builder.Services.AddSwaggerGen(options =>
 // ======================================
 // 🔹 AutoMapper
 // ======================================
-// Usando versão 12.0.1 para compatibilidade
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // ======================================
-// 🔹 Services
+// 🔹 SERVICES
 // ======================================
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILessonService, LessonService>();
-builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
+
+// ======================================
+// 🔹 REPOSITORIES
+// ======================================
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
-builder.Services.AddScoped<ILessonService, LessonService>();
 
 // ======================================
 // 🔹 Build
