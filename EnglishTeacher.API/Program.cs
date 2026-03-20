@@ -166,15 +166,15 @@ var app = builder.Build();
 // 🔹 Middleware Pipeline
 // ======================================
 
-// 🔥 Swagger sempre ativo (IMPORTANTE)
+// 🔥 Swagger ativo em produção
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v6/swagger.json", "EnglishTeacher API v6");
-    c.RoutePrefix = string.Empty; // abre direto na URL base
+    // 🔥 REMOVIDO: c.RoutePrefix = string.Empty;
 });
 
-// Endpoint raiz (fallback)
+// Endpoint raiz (status da API)
 app.MapGet("/", () => "EnglishTeacher API rodando 🚀");
 
 app.UseHttpsRedirection();
