@@ -22,11 +22,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // ======================================
-// 🔹 Banco de Dados (EF Core)
+// 🔹 Banco de Dados (EF Core) - POSTGRESQL
 // ======================================
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // ======================================
 // 🔐 Identity Configuration
@@ -44,14 +45,14 @@ builder.Services
     .AddDefaultTokenProviders();
 
 // ======================================
-// 🔐 JWT Configuration
+// 🔐 JWT Configuration (com fallback seguro)
 // ======================================
-var jwtKey = builder.Configuration["Jwt:Key"];
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtAudience = builder.Configuration["Jwt:Audience"];
+var jwtKey = Environment.GetEnvironmentVariable("Jwt__Key") ?? builder.Configuration["Jwt:Key"];
+var jwtIssuer = Environment.GetEnvironmentVariable("Jwt__Issuer") ?? builder.Configuration["Jwt:Issuer"];
+var jwtAudience = Environment.GetEnvironmentVariable("Jwt__Audience") ?? builder.Configuration["Jwt:Audience"];
 
 if (string.IsNullOrWhiteSpace(jwtKey))
-    throw new Exception("JWT Key não configurada no appsettings.json");
+    throw new Exception("JWT Key não configurada!");
 
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
