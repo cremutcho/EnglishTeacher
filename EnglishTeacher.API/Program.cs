@@ -22,7 +22,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // ======================================
-// 🔹 Banco de Dados (EF Core) - POSTGRESQL
+// 🔹 Banco de Dados (PostgreSQL)
 // ======================================
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
@@ -45,7 +45,7 @@ builder.Services
     .AddDefaultTokenProviders();
 
 // ======================================
-// 🔐 JWT Configuration (com fallback seguro)
+// 🔐 JWT Configuration
 // ======================================
 var jwtKey = Environment.GetEnvironmentVariable("Jwt__Key") ?? builder.Configuration["Jwt:Key"];
 var jwtIssuer = Environment.GetEnvironmentVariable("Jwt__Issuer") ?? builder.Configuration["Jwt:Issuer"];
@@ -165,16 +165,16 @@ var app = builder.Build();
 // ======================================
 // 🔹 Middleware Pipeline
 // ======================================
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v6/swagger.json", "EnglishTeacher API v6");
-        c.RoutePrefix = string.Empty;
-    });
-}
 
+// 🔥 Swagger sempre ativo (IMPORTANTE)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v6/swagger.json", "EnglishTeacher API v6");
+    c.RoutePrefix = string.Empty; // abre direto na URL base
+});
+
+// Endpoint raiz (fallback)
 app.MapGet("/", () => "EnglishTeacher API rodando 🚀");
 
 app.UseHttpsRedirection();
